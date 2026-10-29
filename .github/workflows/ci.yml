@@ -1,0 +1,44 @@
+name: ci
+on:
+  push:
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Admission tests
+        run: python tests/run_tests.py
+      - name: Safe exec tests
+        run: python tests/test_safe_exec.py
+      - name: Lease proof tests
+        run: python tests/test_lease_proof.py
+      - name: E1 capability widening
+        run: |
+          python run_e1.py > e1.json
+          python - <<'PY'
+          import json
+          d = json.load(open("e1.json"))
+          assert d["pass"] is True, d
+          assert d["benign_allowed"] == 20 and d["malicious_denied"] == 40, d
+          assert d["benign_false_deny"] == 0 and d["malicious_false_allow"] == 0, d
+          print("E1 ok", d["latency_p50_ms"], "ms p50")
+          PY
+      - name: E2 replay and tamper
+        run: |
+          python run_e2.py > e2.out
+          python - <<'PY'
+          import json, re
+          text = open("e2.out").read()
+          obj = json.JSONDecoder().raw_decode(text[text.index("{"):])[0]
+          assert obj["true_claim"]["ok"] is True, obj
+          assert obj["replay_second"]["ok"] is False, obj
+          assert obj["false_confirmed"] == 0, obj
+          print("E2 ok")
+          PY

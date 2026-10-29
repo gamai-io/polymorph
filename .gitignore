@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+e1.json
+e2.out
+*.sqlite3
+.venv/

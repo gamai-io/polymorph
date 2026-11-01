@@ -1,3 +1,5 @@
+[![CI](https://github.com/gamai-io/polymorph/actions/workflows/ci.yml/badge.svg)](https://github.com/gamai-io/polymorph/actions/workflows/ci.yml)
+
 # Polymorph
 
 **A capability may change shape, but it may not gain scope.**
